@@ -1,0 +1,2 @@
+/* Find all tables in the database */
+	SELECT * FROM sys.tables

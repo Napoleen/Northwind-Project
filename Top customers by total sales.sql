@@ -1,5 +1,4 @@
 /* Top customers by total sales */
-1
 select  * FROM (
     SELECT 
         c.CustomerID,
@@ -18,5 +17,3 @@ select  * FROM (
         c.CustomerID, c.CompanyName
 ) AS CustomerSales 
  order by TotalSales desc;
-
-
