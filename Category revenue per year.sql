@@ -14,6 +14,9 @@ order by (sum(OD.UnitPrice * OD.Quantity * (1 - OD.Discount))) DESC;
 
 */
 
+/* 
+#Shows Category revenue per year, ordered by year and then by revenue. 
+*/
 
 select C.CategoryName, year(o.OrderDate) as Year,
     format(sum(OD.UnitPrice * OD.Quantity * (1 - OD.Discount)), 'C', 'en-US') as Revenue
@@ -26,21 +29,3 @@ group by C.CategoryName, YEAR(o.OrderDate)
 order by year, (sum(OD.UnitPrice * OD.Quantity * (1 - OD.Discount))) DESC;
 
 
-/*
-SELECT
-    YEAR(o.OrderDate) AS OrderYear,
-    c.CustomerID,
-    c.CompanyName,
-    SUM(od.UnitPrice * od.Quantity) AS TotalSales,
-    COUNT(od.OrderID) AS OrderCount,
-    AVG(od.UnitPrice * od.Quantity) AS AverageOrderValue
-FROM Customers c
-JOIN Orders o ON c.CustomerID = o.CustomerID
-JOIN [Order Details] od ON o.OrderID = od.OrderID
-GROUP BY
-    YEAR(o.OrderDate),
-    c.CustomerID,
-    c.CompanyName
-ORDER BY
-    OrderYear,
-    TotalSales DESC;
