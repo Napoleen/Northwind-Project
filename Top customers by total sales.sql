@@ -4,7 +4,7 @@ select  * FROM (
         c.CustomerID,
         c.CompanyName,
         SUM(od.UnitPrice * od.Quantity) AS TotalSales,
-        COUNT(od.ORDERiD) AS OrderCount,
+        COUNT(DISTINCT(od.OrderID)) AS OrderCount,
         AVG(od.UnitPrice * od.Quantity) AS AverageOrderValue
         
     FROM 
