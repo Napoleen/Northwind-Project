@@ -1,7 +1,7 @@
-/* Which sales reps are performing above/below average, and in which regions? 
--Looking at employee table, all employees have "sales" in their title, so we can assume all employees are sales reps, but we should make sure. 
--Looking at orders table, we can see all employes have made sales, but we can check for that in the query with is not null
--We use e.country instead of region, because the region field returns null for those in the UK*/
+--Which sales reps are performing above/below average, and in which regions? 
+--Looking at employee table, all employees have "sales" in their title, so we can assume all employees are sales reps, but we should make sure. 
+--Looking at orders table, we can see all employes have made sales, but we can check for that in the query with is not null
+--We use e.country instead of region, because the region field returns null for those in the UK*/
 
 
 /* Initiail query
@@ -69,7 +69,7 @@ with
             join [order details] od on o.orderid = od.orderid
         group by e.employeeid, e.FirstName, e.LastName, e.country, year(o.orderdate), MONTH(o.orderdate)
     )
-select top 100
+select 
     EmployeeName, Country, Repsales, salesYear, salesMonth,
     avg(repsales) over
 (partition by country, salesyear, salesMonth) as regionavg,
@@ -77,10 +77,13 @@ select top 100
     case when repsales > avg(repsales) over (partition by country, salesyear, salesMonth) then 'Above Average' else 
 'Below Average' end as performance
 from repsales
-where salesyear = 1997 and employeename in ('Margaret Peacock', 'Laura Callahan')
 order by difffromavg desc;
 
 /* KEY TAKEAWAYS:
-From this we can verify that Laura is consistently underperforming compared to her peers in the same region, while Margaret is consistently outperforming her peers.
-This suggests that the performance differences observed in the previous query are not simply a function of duration of employment, but rather reflect consistent performance trends for these employees.
+From this we can verify that Laura is consistently performing above avg for her region, which suggests that the previous query did not tell the whole story 
+
+IMPORTANT NOTE: 
+
+When adding a "where" clause, we need to be careful about how it interacts with the window function.
+when looking at an individauls performance in a smaller time window, the query will compare their performance to the average of that smaller time window, which may not be a fair comparison if the time window is too small.
 */
