@@ -56,28 +56,45 @@ Adding a time component to see how sales rep performance has changed over time, 
     (Or to see if sales performance from the previous query is simply a function of duration of employment)  
 */
 
-with
+with -- we can use CTEs to break down the query into more manageable parts, and to avoid repeating the same calculations multiple times
     repsales
     as
     (
-        select e.EmployeeID, concat(e.FirstName,' ', e.LastName) as EmployeeName, e.country,
+        select e.EmployeeID,
+            concat(e.FirstName,' ', e.LastName) as EmployeeName,
+            e.country,
             sum(od.unitprice *od.Quantity) as RepSales,
             year(o.orderdate) as salesYear,
             MONTH(o.orderdate) as salesMonth
-        from employees E
+        from employees e
             join orders o on e.employeeID = o.employeeID
             join [order details] od on o.orderid = od.orderid
         group by e.employeeid, e.FirstName, e.LastName, e.country, year(o.orderdate), MONTH(o.orderdate)
+    ),
+    with_avg -- so we dont have to repeat the window function multiple times
+    as
+    (
+        select *, 
+            avg(repsales) over (
+        partition by country, salesyear, salesmonth
+        ) as regionavg
+        from repsales
     )
-select 
-    EmployeeName, Country, Repsales, salesYear, salesMonth,
-    avg(repsales) over
-(partition by country, salesyear, salesMonth) as regionavg,
-    repsales - (avg(repsales) over (partition by country, salesyear, salesMonth)) as difffromavg,
-    case when repsales > avg(repsales) over (partition by country, salesyear, salesMonth) then 'Above Average' else 
-'Below Average' end as performance
-from repsales
+select
+    employeeName,
+    country,
+    salesYear,
+    salesMonth,
+    repsales,
+    regionavg,
+    repsales - regionavg as difffromavg,
+    case when repsales > regionavg then 'Above Average' 
+    else 'Below Average' 
+    end as performance
+from with_avg
 order by difffromavg desc;
+
+
 
 /* KEY TAKEAWAYS:
 From this we can verify that Laura is consistently performing above avg for her region, which suggests that the previous query did not tell the whole story 
