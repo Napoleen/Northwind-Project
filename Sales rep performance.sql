@@ -1,7 +1,7 @@
-/* Which sales reps are performing above/below average, and in which regions? 
--Looking at employee table, all employees have "sales" in their title, so we can assume all employees are sales reps, but we should make sure. 
--Looking at orders table, we can see all employes have made sales, but we can check for that in the query with is not null
--We use e.country instead of region, because the region field returns null for those in the UK*/
+--Which sales reps are performing above/below average, and in which regions? 
+--Looking at employee table, all employees have "sales" in their title, so we can assume all employees are sales reps, but we should make sure. 
+--Looking at orders table, we can see all employes have made sales, but we can check for that in the query with is not null
+--We use e.country instead of region, because the region field returns null for those in the UK*/
 
 
 /* Initiail query
@@ -56,34 +56,51 @@ Adding a time component to see how sales rep performance has changed over time, 
     (Or to see if sales performance from the previous query is simply a function of duration of employment)  
 */
 
-with -- creating a CTE to calculate sales per rep per year and month, so we can compare performance over time
+with -- we can use CTEs to break down the query into more manageable parts, and to avoid repeating the same calculations multiple times
     repsales
-    as 
+    as
     (
-        -- total sales by employee, year, and month
-        select e.EmployeeID, concat(e.FirstName,' ', e.LastName) as EmployeeName, e.country,
-            sum(od.unitprice * od.Quantity) as RepSales,
+        select e.EmployeeID,
+            concat(e.FirstName,' ', e.LastName) as EmployeeName,
+            e.country,
+            sum(od.unitprice *od.Quantity) as RepSales,
             year(o.orderdate) as salesYear,
             MONTH(o.orderdate) as salesMonth
-        from employees E
+        from employees e
             join orders o on e.employeeID = o.employeeID
             join [order details] od on o.orderid = od.orderid
         group by e.employeeid, e.FirstName, e.LastName, e.country, year(o.orderdate), MONTH(o.orderdate)
+    ),
+    with_avg -- so we dont have to repeat the window function multiple times
+    as
+    (
+        select *, 
+            avg(repsales) over (
+        partition by country, salesyear, salesmonth
+        ) as regionavg
+        from repsales
     )
-select -- looking at 1997 to see if the trends we observed in the previous query hold true when we look at a specific time period, and to see if there are any seasonal trends in sales performance
-    EmployeeName, Country, Repsales, salesYear, salesMonth,
-    -- calculate the monthly average sales for the rep's region
-    avg(repsales) over
-(partition by country, salesyear, salesMonth) as regionavg,
-    -- compare each rep's monthly sales against the regional average
-    repsales - (avg(repsales) over (partition by country, salesyear, salesMonth)) as difffromavg,
-    -- label performance relative to the regional monthly average
-    case when repsales > avg(repsales) over (partition by country, salesyear, salesMonth) then 'Above Average' else 
-'Below Average' end as performance
-from repsales
+select
+    employeeName,
+    country,
+    salesYear,
+    salesMonth,
+    repsales,
+    regionavg,
+    repsales - regionavg as difffromavg,
+    case when repsales > regionavg then 'Above Average' 
+    else 'Below Average' 
+    end as performance
+from with_avg
 order by difffromavg desc;
 
+
+
 /* KEY TAKEAWAYS:
-From this we can verify that Laura is consistently underperforming compared to her peers in the same region, while Margaret is consistently outperforming her peers.
-This suggests that the performance differences observed in the previous query are not simply a function of duration of employment, but rather reflect consistent performance trends for these employees.
+From this we can verify that Laura is consistently performing above avg for her region, which suggests that the previous query did not tell the whole story 
+
+IMPORTANT NOTE: 
+
+When adding a "where" clause, we need to be careful about how it interacts with the window function.
+when looking at an individauls performance in a smaller time window, the query will compare their performance to the average of that smaller time window, which may not be a fair comparison if the time window is too small.
 */
