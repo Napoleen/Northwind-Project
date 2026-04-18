@@ -56,12 +56,13 @@ Adding a time component to see how sales rep performance has changed over time, 
     (Or to see if sales performance from the previous query is simply a function of duration of employment)  
 */
 
-with
+with -- creating a CTE to calculate sales per rep per year and month, so we can compare performance over time
     repsales
-    as
+    as 
     (
+        -- total sales by employee, year, and month
         select e.EmployeeID, concat(e.FirstName,' ', e.LastName) as EmployeeName, e.country,
-            sum(od.unitprice *od.Quantity) as RepSales,
+            sum(od.unitprice * od.Quantity) as RepSales,
             year(o.orderdate) as salesYear,
             MONTH(o.orderdate) as salesMonth
         from employees E
@@ -69,15 +70,17 @@ with
             join [order details] od on o.orderid = od.orderid
         group by e.employeeid, e.FirstName, e.LastName, e.country, year(o.orderdate), MONTH(o.orderdate)
     )
-select top 100
+select -- looking at 1997 to see if the trends we observed in the previous query hold true when we look at a specific time period, and to see if there are any seasonal trends in sales performance
     EmployeeName, Country, Repsales, salesYear, salesMonth,
+    -- calculate the monthly average sales for the rep's region
     avg(repsales) over
 (partition by country, salesyear, salesMonth) as regionavg,
+    -- compare each rep's monthly sales against the regional average
     repsales - (avg(repsales) over (partition by country, salesyear, salesMonth)) as difffromavg,
+    -- label performance relative to the regional monthly average
     case when repsales > avg(repsales) over (partition by country, salesyear, salesMonth) then 'Above Average' else 
 'Below Average' end as performance
 from repsales
-where salesyear = 1997 and employeename in ('Margaret Peacock', 'Laura Callahan')
 order by difffromavg desc;
 
 /* KEY TAKEAWAYS:
