@@ -10,7 +10,7 @@ business-oriented data analysis.
 ---
 
 ## Analysis 1: Top Customers by Lifetime Value
-**Query:** [Top customers by total sales.sql](queries/top_customers.sql)
+**Query:** [Top customers by total sales.sql](Queries/top_customers.sql)
 
 **Business question:** Who are the top customers by lifetime value, and how 
 does their average order size compare to the rest?
@@ -40,7 +40,7 @@ Note: excludes discount adjustment — figures are pre-discount gross sales
 ---
 
 ## Analysis 2: Category Revenue Share Over Time
-**Query:** [Category revenue per year.sql](queries/category_revenue_by_year.sql)
+**Query:** [Category revenue per year.sql](Queries/category_revenue_by_year.sql)
 
 **Business question:** Which product categories generate the most revenue, and is 
 that share growing or shrinking over time?
@@ -72,7 +72,7 @@ each year are more reliable than raw growth rates *between* years. (This is a mo
 ---
 
 ## Analysis 3: Sales Rep Performance vs. Regional Average
-**Query:** [Sales rep performance.sql](queries/sales_rep_performance.sql)
+**Query:** [Sales rep performance.sql](Queries/sales_rep_performance.sql)
 
 **Business question:** Which sales reps are performing above or below average 
 relative to their region?
