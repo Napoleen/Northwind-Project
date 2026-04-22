@@ -1,4 +1,4 @@
-/* Top customers by total sales */
+/* Who are the customers that generate the most sales? */
 select  * FROM (
     SELECT 
         c.CustomerID,
